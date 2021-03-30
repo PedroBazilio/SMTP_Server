@@ -42,9 +42,10 @@ while 1:
             socketServer.sendto(helERORR.encode(), addr)   
             
     a = 0
-    rcptMAIL, addr = socketServer.recvfrom(2048)
-    mailfro = rcptMAIL.decode("UTF-8")
     while(a == 0):
+        rcptMAIL, addr = socketServer.recvfrom(2048)
+        mailfro = rcptMAIL.decode("UTF-8")
+        print(mailfro)
         #lê email do vetor de emails e verifica se existe
         for i in range(len(users)):    
             #se ele existe
@@ -61,11 +62,11 @@ while 1:
 
     #recebe os dados do remetente
     
-    rcvRCPT, addr = socketServer.recvfrom(2048)
-    rcvRCP = rcvRCPT.decode("UTF-8")
     b = 0 
     while(b==0):
     #verifica se o remetente esta na lista
+        rcvRCPT, addr = socketServer.recvfrom(2048)
+        rcvRCP = rcvRCPT.decode("UTF-8")
         for i in range(len(users)):
             if (rcvRCP == users[i]):
                 sendRCPT = "250 " + rcvRCPT.decode("UTF-8") + " Recipient OK..."
@@ -78,11 +79,11 @@ while 1:
             
                     
     #recebe o comando DATA
-    rcvData, addr = socketServer.recvfrom(2048)
-    rcvDAT = rcvData.decode("UTF-8")
     # se data == DATA eu continuo o processo
     c = 0
     while(c == 0):
+        rcvData, addr = socketServer.recvfrom(2048)
+        rcvDAT = rcvData.decode("UTF-8")
         if(rcvDAT == "DATA"):
             msgData = "354 Enter mail, end with '.' on a line by itself"
             socketServer.sendto(msgData.encode(), addr)
@@ -93,24 +94,29 @@ while 1:
             socketServer.sendto(msgData.encode(), addr)
         
     #recebe o email 
+    listMail = []
     rcvMail, addr = socketServer.recvfrom(4096)
     rcvMai = rcvMail.decode("UTF-8")
-    print(rcvMai)
+    listMail.append(rcvMai)
+    w = 0
+    while(w == 0):
+        rcvMail, addr = socketServer.recvfrom(4096)
+        rcvMai = rcvMail.decode("UTF-8")
+        
+        if(rcvMai != "."):
+            listMail.append(rcvMai)
+        else:
+            w = 1
+    for i in range (len(listMail)):
+        print(listMail[i])
+    
+    
+    
+    
     msgMail = "250 Message accepted for delivery"
     socketServer.sendto(msgMail.encode(), addr)
 
 
-    
-    
-    
-
-#caso contrario manda uma mensagem de erro
-else:
-    resposta = "501 Syntax: HELO hostname"
-    print("realizando envio")
-    socketServer.sendto(resposta.encode(), addr)    
-
-    
     
     
     

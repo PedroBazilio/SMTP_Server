@@ -32,7 +32,6 @@ while 1:
     socketClient.sendto(mailFrom.encode(), (server, serverPort))               
     respMailFrom, addr = socketClient.recvfrom(2048)
     respMailFro = respMailFrom.decode("UTF-8")
-    
     #se a resposta for um email que não existe pede para repetir o processo
     while(respMailFro == "Email inexistente, tente novamente"):
         print(respMailFro)
@@ -46,13 +45,14 @@ while 1:
     sndRCPT = input("RCPT TO: ")
     socketClient.sendto(sndRCPT.encode(), (server, serverPort))
     rcvRCPT, addr = socketClient.recvfrom(2048)            
-    rcvRCPT.decode("UTF-8")
+    rcvRCP = rcvRCPT.decode("UTF-8")
     #o remetente nao existe
-    while(rcvRCPT == "Recipient doesn't exit"):
+    while(rcvRCP == "Recipient doesn't exit"):
+        print(rcvRCP)
         sndRCPT = input("RCPT TO: ")
         socketClient.sendto(sndRCPT.encode(), (server, serverPort))
         rcvRCPT, addr = socketClient.recvfrom(2048)            
-        rcvRCPT.decode("UTF-8")
+        rcvRCP = rcvRCPT.decode("UTF-8")
 
 
     print(rcvRCPT)
@@ -60,13 +60,13 @@ while 1:
     sndDATA = input()
     socketClient.sendto(sndDATA.encode(), (server, serverPort))
     rcvDATA, addr = socketClient.recvfrom(2048)
-    rcvDATA.decode("UTF-8")
-    while(rcvDATA == "inserir codigo de erro"):
+    rcvDAT = rcvDATA.decode("UTF-8")
+    while(rcvDAT == "inserir codigo de erro"):
         print(rcvDATA)
         sndDATA = input()
         socketClient.sendto(sndDATA.encode(), (server, serverPort))
         rcvDATA, addr = socketClient.recvfrom(2048)
-        rcvDATA.decode("UTF-8")
+        rcvDAT = rcvDATA.decode("UTF-8")
     
     print(rcvDATA)
     listEmail = []
