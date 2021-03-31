@@ -8,8 +8,6 @@ serverPort = 25
 socketClient = socket(AF_INET, SOCK_DGRAM)
 while 1:
     #envio do helo
-    q = 0
-    
     helo = input("Digite o comando helo + username para iniciar a transação\n")
     socketClient.sendto(helo.encode(), (server, serverPort))
     respHelo, addr = socketClient.recvfrom(2048)
@@ -55,37 +53,35 @@ while 1:
         rcvRCP = rcvRCPT.decode("UTF-8")
 
 
-    print(rcvRCPT)
+    print(rcvRCP)
     #Recebe Data
     sndDATA = input()
     socketClient.sendto(sndDATA.encode(), (server, serverPort))
     rcvDATA, addr = socketClient.recvfrom(2048)
     rcvDAT = rcvDATA.decode("UTF-8")
-    while(rcvDAT == "inserir codigo de erro"):
-        print(rcvDATA)
+    while(rcvDAT == "500 Syntax error, command unrecognized"):
+        print(rcvDAT)
         sndDATA = input()
         socketClient.sendto(sndDATA.encode(), (server, serverPort))
         rcvDATA, addr = socketClient.recvfrom(2048)
         rcvDAT = rcvDATA.decode("UTF-8")
     
-    print(rcvDATA)
+    print(rcvDAT)
     listEmail = []
-    a = 0
-    while(a==0):
+    while(1):#recebe a mensagem do email
         email = input()
         if(email == "."):
-            a=1       
+            listEmail.append(email)  
+            break
         else:
             listEmail.append(email)
     for i in range (len(listEmail)):
         socketClient.sendto(listEmail[i].encode(), (server, serverPort))
     msgEmail, addr =  socketClient.recvfrom(2048)
-    msgEmail.decode("UTF-8")
-    print(msgEmail)
+    msg = msgEmail.decode("UTF-8")
+    print(msg)
 
     
     
 
 socketClient.close()
-
-#desculpa professor :_(
