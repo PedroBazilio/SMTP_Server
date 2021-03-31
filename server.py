@@ -1,50 +1,80 @@
 from socket import *
 import os
 
-#poe os usuarios em uma lista
-
-users = list()        
-with open ("NomesDeUsuarios.txt", "r") as user:
-    for line in user:
-        users.append(line.strip());
-
-
-
-#faz uma caixa de entrada para cada usuario
-
-for i in range(len(users)):
-    user = users[i]
-    file = open(str(user)+".txt","w");
-    file.close();
-
-
 serverPort = 25
 socketServer = socket(AF_INET, SOCK_DGRAM)
 
 socketServer.bind(("", serverPort))
 
+print("aguardando arquivo de usuarios")
+#poe os usuarios em uma lista
+rcvUsers, addr = socketServer.recvfrom(2048)
+rcvUser = rcvUsers.decode("UTF-8")
+
+users = list()        
+try:
+    with open (str(rcvUser)+".txt", "r") as user:
+        for line in user:
+            users.append(line.strip());
+        print("Arquivo recebido com sucesso")
+    #faz uma caixa de entrada para cada usuario
+
+    for i in range(len(users)):
+        user = users[i]
+        file = open(str(user)+".txt","w");
+        file.close();
+
+    msgSuc = "Arquivo aberto com sucesso"
+    socketServer.sendto(msgSuc.encode(), addr)
+
+
+except IOError:
+
+    msgError = "Arquivo inexistente"
+    socketServer.sendto(msgError.encode(), addr)
+    aux = 1
+
 print("server aguardando...")
 
-while 1:
-    
+aux = 0
+while (aux == 0):
+    aux2 = 0
     #recebe o comando helo
     #se a resposta for o comando certo continua com o processo
-    while(1):
+    while(aux2 == 0):
         resp, addr = socketServer.recvfrom(2048)
         resposta = resp.decode("UTF-8")
-        if(resposta == "helo user"):
-            resposta = "250 ola user"
+        
+        if(resposta == "QUIT"):
+            aux2 = 1
+            socketServer.sendto(resposta.encode(), addr)
+            break
+    
+        
+        if(resposta == "HELO user"):
+            resposta = "250 Ola user"
             socketServer.sendto(resposta.encode(), addr) 
             break
         else:
-            helERORR = "501 Syntax: HELO hostname"
+            helERORR = "500 Syntax error, command unrecognized"
             socketServer.sendto(helERORR.encode(), addr)   
-            
+
+    if(aux2==1):
+        print("Codigo encerrado")
+        break
+    
+    
+    
     a = 0
     while(a == 0):
         rcptMAIL, addr = socketServer.recvfrom(2048)
         mailfro = rcptMAIL.decode("UTF-8")
-        print(mailfro)
+        
+        if (mailfro == "QUIT"):
+            a = 2
+            socketServer.sendto(mailfro.encode(), addr)
+            break
+        
         #lê email do vetor de emails e verifica se existe
         for i in range(len(users)):    
             #se ele existe
@@ -55,9 +85,15 @@ while 1:
                 
         #caso o email n exista na lista
         if(a == 0):
-            erroSender = "Email inexistente, tente novamente"
+            erroSender = "550 Address Unkonown"
             socketServer.sendto(erroSender.encode(), addr)    
-            
+    
+    
+    if(a==2):
+        print("Codigo encerrado")
+        break
+           
+    print("Mail From: " + mailfro)
 
     #recebe os dados do remetente
     
@@ -66,6 +102,11 @@ while 1:
     #verifica se o remetente esta na lista
         rcvRCPT, addr = socketServer.recvfrom(2048)
         rcvRCP = rcvRCPT.decode("UTF-8")
+        if(rcvRCP == "QUIT"):
+            b = 2
+            socketServer.sendto(rcvRCP.encode(), addr)
+            break
+        
         for i in range(len(users)):
             if (rcvRCP == users[i]):
                 sendRCPT = "250 " + rcvRCPT.decode("UTF-8") + " Recipient OK..."
@@ -73,10 +114,15 @@ while 1:
                 b = 1;
                 
         if(b==0):
-            errorRPCT = "Recipient doesn't exit"
+            errorRPCT = "550 Address Unkonown"
             socketServer.sendto(errorRPCT.encode(), addr)
+    
+    if(b==2):
+        print("Codigo encerrado")
+        break
 
-    print(rcvRCP)
+    print("RCPT TO: " + rcvRCP)
+    print("\n")
             
                     
     #recebe o comando DATA
@@ -84,6 +130,11 @@ while 1:
     while(1):
         rcvData, addr = socketServer.recvfrom(2048)
         rcvDAT = rcvData.decode("UTF-8")
+        if(rcvDAT == "QUIT"):
+            aux2 = 1
+            socketServer.sendto(rcvDAT.encode(), addr)
+            break
+        
         if(rcvDAT == "DATA"):
             msgData = "354 Enter mail, end with '.' on a line by itself"
             socketServer.sendto(msgData.encode(), addr)
@@ -91,8 +142,11 @@ while 1:
         else:
             msgData = "500 Syntax error, command unrecognized"
             socketServer.sendto(msgData.encode(), addr)
-
-    print("Esperando mensagem do remetente.\n")
+    
+    if(aux2==1):
+        print("Codigo encerrado")
+        break
+    #print("Esperando mensagem do remetente.\n")
         
     #recebe a mensagem email 
     listMail = []
@@ -111,12 +165,19 @@ while 1:
     for i in range (len(listMail)):
         print(listMail[i])
     
-    
+    for i in range(len(users)):
+        if(rcvRCP == users[i]):
+            file = open(str(rcvRCP)+".txt","a+");
+            file.write("Mail From: "+ mailfro + "\n")
+            for i in range(len(listMail)):
+                file.write(listMail[i]+ "\n")
+            file.write("\n\n")
+            file.close();
     
     
     msgMail = "250 Message accepted for delivery"
     socketServer.sendto(msgMail.encode(), addr)
-
+    print("\n")
 
     
     
