@@ -94,7 +94,7 @@ if(msgUser == "Arquivo aberto com sucesso"):
         socketClient.sendto(sndDATA.encode(), (server, serverPort))
         rcvDATA, addr = socketClient.recvfrom(2048)
         rcvDAT = rcvDATA.decode("UTF-8")
-        if(rcvDAT == "QUIT"):
+        if(rcvDAT == "QUIT"):    
             break
         
         while(rcvDAT == "500 Syntax error, command unrecognized"):

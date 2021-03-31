@@ -127,11 +127,12 @@ while (aux == 0):
                     
     #recebe o comando DATA
     # se data == DATA eu continuo o processo
-    while(1):
+    aux3 = 0
+    while(aux3 == 0):
         rcvData, addr = socketServer.recvfrom(2048)
         rcvDAT = rcvData.decode("UTF-8")
         if(rcvDAT == "QUIT"):
-            aux2 = 1
+            aux3 = 1
             socketServer.sendto(rcvDAT.encode(), addr)
             break
         
@@ -143,7 +144,7 @@ while (aux == 0):
             msgData = "500 Syntax error, command unrecognized"
             socketServer.sendto(msgData.encode(), addr)
     
-    if(aux2==1):
+    if(aux3==1):
         print("Codigo encerrado")
         break
     #print("Esperando mensagem do remetente.\n")
@@ -161,6 +162,9 @@ while (aux == 0):
             listMail.append(rcvMai)
         else:
             w = 1
+    
+
+
 
     for i in range (len(listMail)):
         print(listMail[i])
